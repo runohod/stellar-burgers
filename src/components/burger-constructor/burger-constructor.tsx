@@ -1,24 +1,47 @@
 import { FC, useMemo } from 'react';
 import { TConstructorIngredient } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
+import { useDispatch, useSelector } from '../../services/store';
+import {
+  burgerConstructorActions,
+  burgerConstructorSelectors
+} from '../../services/slices/burger-constructor-slice';
+import {
+  fetchOrderBurger,
+  orderActions,
+  orderSelectors
+} from '../../services/slices/order-slice';
+import { useNavigate } from 'react-router-dom';
+import { fetchUser, userSelectors } from '../../services/slices/user-slice';
 
 export const BurgerConstructor: FC = () => {
-  /** TODO: взять переменные constructorItems, orderRequest и orderModalData из стора */
-  const constructorItems = {
-    bun: {
-      price: 0
-    },
-    ingredients: []
-  };
+  const navigate = useNavigate();
 
-  const orderRequest = false;
+  const user = useSelector(userSelectors.userSelector);
+  const constructorItems = useSelector(
+    burgerConstructorSelectors.ingredientsSelector
+  );
+  const orderRequest = useSelector(orderSelectors.orderRequestSelector);
+  const orderModalData = useSelector(orderSelectors.orderSelector);
 
-  const orderModalData = null;
+  const dispatch = useDispatch();
 
   const onOrderClick = () => {
     if (!constructorItems.bun || orderRequest) return;
+    if (!user) return navigate('/login');
+    else dispatch(fetchUser());
+
+    const bunId = constructorItems.bun._id;
+    const ingredientsIds = constructorItems.ingredients.map((item) => item._id);
+    const orderData = [bunId, ...ingredientsIds, bunId];
+
+    dispatch(fetchOrderBurger(orderData));
   };
-  const closeOrderModal = () => {};
+
+  const closeOrderModal = () => {
+    dispatch(orderActions.clearOrderModalDataAction());
+    dispatch(burgerConstructorActions.clearIngredients());
+  };
 
   const price = useMemo(
     () =>
@@ -29,8 +52,6 @@ export const BurgerConstructor: FC = () => {
       ),
     [constructorItems]
   );
-
-  return null;
 
   return (
     <BurgerConstructorUI
