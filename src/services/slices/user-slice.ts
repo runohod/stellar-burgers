@@ -35,11 +35,6 @@ export const fetchLoginUser = createAsyncThunk(
   async (loginData: TLoginData) => {
     const data = await loginUserApi(loginData);
 
-    setCookie('accessToken', data.accessToken);
-    localStorage.setItem('refreshToken', data.refreshToken);
-
-    window.location.reload();
-
     return data;
   }
 );
@@ -50,13 +45,6 @@ export const fetchUpdateUser = createAsyncThunk(
   'user/fetchUpdateUser',
   async (user: TRegisterData) => await updateUserApi(user)
 );
-
-export const fetchLogout = createAsyncThunk('user/fetchLogout', async () => {
-  logoutApi().then(() => {
-    deleteCookie('accessToken');
-    window.location.reload();
-  });
-});
 
 export const userSlice = createSlice({
   name: 'user',
