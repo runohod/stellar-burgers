@@ -5,17 +5,18 @@ import {
   fetchUpdateUser,
   userSelectors
 } from '../../services/slices/user-slice';
+import { useHistory } from 'react-router-dom';
 
 export const Profile: FC = () => {
   const user = useSelector(userSelectors.userSelector);
+  const dispatch = useDispatch();
+  const history = useHistory();
 
   const [formValue, setFormValue] = useState({
     name: user?.name || '',
     email: user?.email || '',
     password: ''
   });
-
-  const dispatch = useDispatch();
 
   useEffect(() => {
     setFormValue((prevState) => ({
@@ -32,6 +33,14 @@ export const Profile: FC = () => {
 
   const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
+
+    // Проверяем, авторизован ли пользователь
+    if (!user) {
+      // Перенаправление на страницу логина
+      history.push('/login'); // Обновите путь в соответствии с вашим роутингом
+      return;
+    }
+
     dispatch(fetchUpdateUser(formValue));
   };
 
