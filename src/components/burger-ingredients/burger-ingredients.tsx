@@ -3,17 +3,14 @@ import { useInView } from 'react-intersection-observer';
 
 import { TTabMode } from '@utils-types';
 import { BurgerIngredientsUI } from '../ui/burger-ingredients';
-import { ingredientsSelectors } from '../../services/slices/ingredients-slice';
+import { getIngredientState } from '../../services/slices/ingredientSlice/ingredientSlice';
 import { useSelector } from '../../services/store';
 
 export const BurgerIngredients: FC = () => {
-  const ingredients = useSelector(ingredientsSelectors.ingredientsSelector);
-
-  const buns = ingredients?.filter((ingredient) => ingredient.type === 'bun');
-  const mains = ingredients?.filter((ingredient) => ingredient.type === 'main');
-  const sauces = ingredients?.filter(
-    (ingredient) => ingredient.type === 'sauce'
-  );
+  const { ingredients, loading, error } = useSelector(getIngredientState);
+  const buns = ingredients.filter((item) => item.type === 'bun');
+  const mains = ingredients.filter((item) => item.type === 'main');
+  const sauces = ingredients.filter((item) => item.type === 'sauce');
 
   const [currentTab, setCurrentTab] = useState<TTabMode>('bun');
   const titleBunRef = useRef<HTMLHeadingElement>(null);
@@ -23,17 +20,23 @@ export const BurgerIngredients: FC = () => {
   const [bunsRef, inViewBuns] = useInView({
     threshold: 0
   });
+
   const [mainsRef, inViewFilling] = useInView({
     threshold: 0
   });
+
   const [saucesRef, inViewSauces] = useInView({
     threshold: 0
   });
 
   useEffect(() => {
-    if (inViewBuns) setCurrentTab('bun');
-    else if (inViewSauces) setCurrentTab('sauce');
-    else if (inViewFilling) setCurrentTab('main');
+    if (inViewBuns) {
+      setCurrentTab('bun');
+    } else if (inViewSauces) {
+      setCurrentTab('sauce');
+    } else if (inViewFilling) {
+      setCurrentTab('main');
+    }
   }, [inViewBuns, inViewFilling, inViewSauces]);
 
   const onTabClick = (tab: string) => {
@@ -45,6 +48,14 @@ export const BurgerIngredients: FC = () => {
     if (tab === 'sauce')
       titleSaucesRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  if (loading) {
+    return <div>Загрузка...</div>;
+  }
+
+  if (error) {
+    return <div>Ошибка: {error}</div>;
+  }
 
   return (
     <BurgerIngredientsUI
